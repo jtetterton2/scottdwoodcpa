@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import sgMail from "@sendgrid/mail";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -31,19 +30,16 @@ export async function POST(request: Request) {
     console.warn("reCAPTCHA token missing — allowing submission for now");
   }
 
-  // Send email via SendGrid
+  // Send email via SendGrid REST API directly
   const sendgridKey = process.env.SENDGRID_API_KEY;
   const toEmail = process.env.CONTACT_EMAIL || "office@scottwoodcpa.com";
 
   if (!sendgridKey) {
-    console.error("SENDGRID_API_KEY is not configured");
     return NextResponse.json(
       { error: "Email service is not configured." },
       { status: 500 }
     );
   }
-
-  sgMail.setApiKey(sendgridKey);
 
   const serviceLabels: Record<string, string> = {
     "personal-tax": "Personal Tax Preparation",
@@ -53,42 +49,55 @@ export async function POST(request: Request) {
     other: "Other / General Inquiry",
   };
 
-  const msg = {
-    to: toEmail,
-    from: toEmail, // Must be a verified sender in SendGrid
-    replyTo: email,
-    subject: `New Contact Form: ${firstName} ${lastName || ""} — ${serviceLabels[service] || "General"}`,
-    text: [
-      `Name: ${firstName} ${lastName || ""}`,
-      `Email: ${email}`,
-      `Phone: ${phone || "Not provided"}`,
-      `Service: ${serviceLabels[service] || "Not specified"}`,
-      ``,
-      `Message:`,
-      message,
-    ].join("\n"),
-    html: `
-      <h2>New Contact Form Submission</h2>
-      <table style="border-collapse:collapse;width:100%;max-width:600px;">
-        <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Name</td><td style="padding:8px;border-bottom:1px solid #eee;">${firstName} ${lastName || ""}</td></tr>
-        <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Email</td><td style="padding:8px;border-bottom:1px solid #eee;"><a href="mailto:${email}">${email}</a></td></tr>
-        <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Phone</td><td style="padding:8px;border-bottom:1px solid #eee;">${phone || "Not provided"}</td></tr>
-        <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Service</td><td style="padding:8px;border-bottom:1px solid #eee;">${serviceLabels[service] || "Not specified"}</td></tr>
-      </table>
-      <h3 style="margin-top:24px;">Message</h3>
-      <p style="white-space:pre-wrap;">${message}</p>
-    `,
+  const fullName = `${firstName} ${lastName || ""}`.trim();
+  const serviceName = serviceLabels[service] || "General";
+
+  const sgPayload = {
+    personalizations: [
+      {
+        to: [{ email: toEmail }],
+        subject: `New Contact Form: ${fullName} - ${serviceName}`,
+      },
+    ],
+    from: { email: toEmail, name: "Scott D. Wood CPA Website" },
+    reply_to: { email: email, name: fullName },
+    content: [
+      {
+        type: "text/plain",
+        value: `Name: ${fullName}\nEmail: ${email}\nPhone: ${phone || "Not provided"}\nService: ${serviceName}\n\nMessage:\n${message}`,
+      },
+      {
+        type: "text/html",
+        value: `<h2>New Contact Form Submission</h2>
+<table style="border-collapse:collapse;width:100%;max-width:600px;">
+  <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Name</td><td style="padding:8px;border-bottom:1px solid #eee;">${fullName}</td></tr>
+  <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Email</td><td style="padding:8px;border-bottom:1px solid #eee;"><a href="mailto:${email}">${email}</a></td></tr>
+  <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Phone</td><td style="padding:8px;border-bottom:1px solid #eee;">${phone || "Not provided"}</td></tr>
+  <tr><td style="padding:8px;font-weight:bold;border-bottom:1px solid #eee;">Service</td><td style="padding:8px;border-bottom:1px solid #eee;">${serviceName}</td></tr>
+</table>
+<h3 style="margin-top:24px;">Message</h3>
+<p style="white-space:pre-wrap;">${message}</p>`,
+      },
+    ],
   };
 
-  try {
-    await sgMail.send(msg);
-    return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    const sgError = error as { response?: { body?: unknown }; message?: string };
-    console.error("SendGrid error:", JSON.stringify(sgError.response?.body ?? sgError.message));
+  const sgRes = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${sendgridKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sgPayload),
+  });
+
+  if (!sgRes.ok) {
+    const errorBody = await sgRes.text();
+    console.error("SendGrid error:", sgRes.status, errorBody);
     return NextResponse.json(
-      { error: "Failed to send message. Please try again." },
+      { error: `SendGrid ${sgRes.status}: ${errorBody}` },
       { status: 500 }
     );
   }
+
+  return NextResponse.json({ success: true });
 }
