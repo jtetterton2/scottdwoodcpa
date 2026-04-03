@@ -34,8 +34,6 @@ export async function POST(request: Request) {
   const sendgridKey = process.env.SENDGRID_API_KEY;
   const toEmail = process.env.CONTACT_EMAIL || "office@scottwoodcpa.com";
 
-  console.log("SendGrid from email:", JSON.stringify(toEmail), "length:", toEmail.length);
-
   if (!sendgridKey) {
     return NextResponse.json(
       { error: "Email service is not configured." },
