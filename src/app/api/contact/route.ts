@@ -34,6 +34,8 @@ export async function POST(request: Request) {
   const sendgridKey = process.env.SENDGRID_API_KEY;
   const toEmail = process.env.CONTACT_EMAIL || "office@scottwoodcpa.com";
 
+  console.log("SendGrid from email:", JSON.stringify(toEmail), "length:", toEmail.length);
+
   if (!sendgridKey) {
     return NextResponse.json(
       { error: "Email service is not configured." },
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
         subject: `New Contact Form: ${fullName} - ${serviceName}`,
       },
     ],
-    from: { email: toEmail, name: "Scott D. Wood CPA Website" },
-    reply_to: { email: email, name: fullName },
+    from: { email: toEmail.trim(), name: "Scott D. Wood CPA" },
+    reply_to: { email: email.trim(), name: fullName },
     content: [
       {
         type: "text/plain",
