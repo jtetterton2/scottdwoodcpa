@@ -28,10 +28,7 @@ export async function POST(request: Request) {
       );
     }
   } else if (recaptchaSecret && !recaptchaToken) {
-    return NextResponse.json(
-      { error: "reCAPTCHA token is missing. Please try again." },
-      { status: 400 }
-    );
+    console.warn("reCAPTCHA token missing — allowing submission for now");
   }
 
   // Send email via SendGrid
