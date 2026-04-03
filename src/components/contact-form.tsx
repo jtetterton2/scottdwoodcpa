@@ -255,6 +255,30 @@ export function ContactForm() {
         >
           {status === "sending" ? "Sending..." : "Send Message"}
         </button>
+
+        {RECAPTCHA_SITE_KEY && (
+          <p className="text-xs text-on-surface-variant mt-4">
+            This site is protected by reCAPTCHA and the Google{" "}
+            <a
+              href="https://policies.google.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-primary"
+            >
+              Privacy Policy
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://policies.google.com/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-primary"
+            >
+              Terms of Service
+            </a>{" "}
+            apply.
+          </p>
+        )}
       </form>
     </div>
   );
