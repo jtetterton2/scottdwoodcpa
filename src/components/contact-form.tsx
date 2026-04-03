@@ -23,10 +23,9 @@ export function ContactForm() {
       if (executeRecaptcha) {
         try {
           recaptchaToken = await executeRecaptcha("contact_form");
-        } catch {
-          setStatus("error");
-          setErrorMessage("reCAPTCHA failed to load. Please refresh and try again.");
-          return;
+        } catch (err) {
+          // Log but don't block — let the server decide
+          console.warn("reCAPTCHA failed:", err);
         }
       }
 
