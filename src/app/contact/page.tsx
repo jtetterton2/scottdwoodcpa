@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { RecaptchaProvider } from "@/components/recaptcha-provider";
+import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = {
   title: "Contact | Scott D. Wood, CPA",
@@ -37,125 +39,9 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           {/* Contact Form */}
           <div className="lg:col-span-7">
-            <div className="border-t border-outline-variant/30 pt-12">
-              <h2 className="font-serif text-3xl text-primary mb-8">
-                Send a Message
-              </h2>
-              <form className="space-y-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                  <div>
-                    <label
-                      htmlFor="firstName"
-                      className="block text-xs uppercase tracking-editorial text-primary font-bold mb-3"
-                    >
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      className="w-full bg-transparent border-b border-outline-variant/50 pb-3 text-on-surface focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Your first name"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="lastName"
-                      className="block text-xs uppercase tracking-editorial text-primary font-bold mb-3"
-                    >
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      className="w-full bg-transparent border-b border-outline-variant/50 pb-3 text-on-surface focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Your last name"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-xs uppercase tracking-editorial text-primary font-bold mb-3"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="w-full bg-transparent border-b border-outline-variant/50 pb-3 text-on-surface focus:border-primary focus:outline-none transition-colors"
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-xs uppercase tracking-editorial text-primary font-bold mb-3"
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    className="w-full bg-transparent border-b border-outline-variant/50 pb-3 text-on-surface focus:border-primary focus:outline-none transition-colors"
-                    placeholder="(555) 000-0000"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="service"
-                    className="block text-xs uppercase tracking-editorial text-primary font-bold mb-3"
-                  >
-                    How Can We Help?
-                  </label>
-                  <select
-                    id="service"
-                    name="service"
-                    className="w-full bg-transparent border-b border-outline-variant/50 pb-3 text-on-surface focus:border-primary focus:outline-none transition-colors"
-                  >
-                    <option value="">Select a service...</option>
-                    <option value="personal-tax">
-                      Personal Tax Preparation
-                    </option>
-                    <option value="business-accounting">
-                      Small Business Accounting
-                    </option>
-                    <option value="advisory">Business Advisory</option>
-                    <option value="year-round">Year-Round Support</option>
-                    <option value="other">Other / General Inquiry</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="block text-xs uppercase tracking-editorial text-primary font-bold mb-3"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows={5}
-                    className="w-full bg-transparent border-b border-outline-variant/50 pb-3 text-on-surface focus:border-primary focus:outline-none transition-colors resize-none"
-                    placeholder="Tell us a bit about your situation..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="bg-primary text-on-primary px-10 py-4 text-xs font-bold uppercase tracking-editorial hover:bg-primary-container transition-colors"
-                >
-                  Send Message
-                </button>
-              </form>
-            </div>
+            <RecaptchaProvider>
+              <ContactForm />
+            </RecaptchaProvider>
           </div>
 
           {/* Contact Info Sidebar */}
