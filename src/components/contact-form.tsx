@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { useRecaptcha } from "@/components/recaptcha-provider";
 
 export function ContactForm() {
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const { executeRecaptcha } = useRecaptcha();
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = useCallback(
@@ -23,7 +25,7 @@ export function ContactForm() {
           recaptchaToken = await executeRecaptcha("contact_form");
         } catch {
           setStatus("error");
-          setErrorMessage("reCAPTCHA failed. Please try again.");
+          setErrorMessage("reCAPTCHA failed to load. Please refresh and try again.");
           return;
         }
       }
@@ -55,7 +57,9 @@ export function ContactForm() {
       } catch (err) {
         setStatus("error");
         setErrorMessage(
-          err instanceof Error ? err.message : "Failed to send. Please try again."
+          err instanceof Error
+            ? err.message
+            : "Failed to send. Please try again."
         );
       }
     },
