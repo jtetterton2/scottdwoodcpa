@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
   // Verify reCAPTCHA
   const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-  if (recaptchaSecret) {
+  if (recaptchaSecret && recaptchaToken) {
     const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaToken}`;
     const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
     const recaptchaData = await recaptchaRes.json();
@@ -27,6 +27,11 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+  } else if (recaptchaSecret && !recaptchaToken) {
+    return NextResponse.json(
+      { error: "reCAPTCHA token is missing. Please try again." },
+      { status: 400 }
+    );
   }
 
   // Send email via SendGrid
