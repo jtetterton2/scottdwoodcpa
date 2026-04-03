@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { RecaptchaProvider } from "@/components/recaptcha-provider";
 import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = {
@@ -39,9 +38,7 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           {/* Contact Form */}
           <div className="lg:col-span-7">
-            <RecaptchaProvider>
-              <ContactForm />
-            </RecaptchaProvider>
+            <ContactForm />
           </div>
 
           {/* Contact Info Sidebar */}

@@ -1,10 +1,43 @@
 "use client";
 
+import Script from "next/script";
 import { useState, useCallback } from "react";
-import { useRecaptcha } from "@/components/recaptcha-provider";
+
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+
+function getRecaptchaToken(action: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error("reCAPTCHA timed out")), 8000);
+
+    const w = window as unknown as {
+      grecaptcha?: {
+        ready: (cb: () => void) => void;
+        execute: (key: string, opts: { action: string }) => Promise<string>;
+      };
+    };
+
+    if (!w.grecaptcha) {
+      clearTimeout(timeout);
+      reject(new Error("reCAPTCHA not available"));
+      return;
+    }
+
+    w.grecaptcha.ready(() => {
+      w.grecaptcha!
+        .execute(RECAPTCHA_SITE_KEY, { action })
+        .then((token) => {
+          clearTimeout(timeout);
+          resolve(token);
+        })
+        .catch((err) => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+    });
+  });
+}
 
 export function ContactForm() {
-  const { executeRecaptcha } = useRecaptcha();
   const [status, setStatus] = useState<
     "idle" | "sending" | "success" | "error"
   >("idle");
@@ -20,12 +53,12 @@ export function ContactForm() {
       const formData = new FormData(form);
 
       let recaptchaToken = "";
-      if (executeRecaptcha) {
+      if (RECAPTCHA_SITE_KEY) {
         try {
-          recaptchaToken = await executeRecaptcha("contact_form");
+          recaptchaToken = await getRecaptchaToken("contact_form");
         } catch (err) {
-          // Log but don't block — let the server decide
           console.warn("reCAPTCHA failed:", err);
+          // Still try to submit — server will decide
         }
       }
 
@@ -62,7 +95,7 @@ export function ContactForm() {
         );
       }
     },
-    [executeRecaptcha]
+    []
   );
 
   if (status === "success") {
@@ -98,6 +131,13 @@ export function ContactForm() {
         <div className="bg-error-container text-on-error-container p-4 mb-8 text-sm">
           {errorMessage}
         </div>
+      )}
+
+      {RECAPTCHA_SITE_KEY && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
+          strategy="afterInteractive"
+        />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
